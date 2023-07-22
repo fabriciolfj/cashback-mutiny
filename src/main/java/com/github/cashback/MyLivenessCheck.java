@@ -1,4 +1,4 @@
-package com.github;
+package com.github.cashback;
 
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;

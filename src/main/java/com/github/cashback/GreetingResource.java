@@ -1,4 +1,4 @@
-package com.github;
+package com.github.cashback;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
