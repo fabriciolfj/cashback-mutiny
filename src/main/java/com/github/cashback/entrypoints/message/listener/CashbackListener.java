@@ -4,7 +4,6 @@ import com.github.cashback.entrypoints.message.converter.CashbackDTOConverter;
 import com.github.cashback.entrypoints.message.dto.CashbackDTO;
 import com.github.cashback.usecase.CashbackCalculeUseCase;
 import io.smallrye.mutiny.Uni;
-import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,6 @@ public class CashbackListener {
 
     private final CashbackCalculeUseCase useCase;
 
-    //@Blocking
     @Acknowledgment(Acknowledgment.Strategy.PRE_PROCESSING)
     @Incoming("cashback-credit")
     public Uni<Void> process(final Message<CashbackDTO> dto) {
@@ -31,7 +29,6 @@ public class CashbackListener {
                 .transformToUni(entity -> useCase.execute(Uni.createFrom().item(entity)))
                 .invoke(c -> {
                     log.info("processo successful");
-                    //dto.ack();
                 }).replaceWithVoid();
     }
 }
