@@ -9,18 +9,40 @@ import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
+
 @Slf4j
 @ApplicationScoped
 public class CashbackRepository implements CashbackProviderSave {
 
+    private static final String QUERY_CUSTOMER = "Select c from CashbackDatabase c where c.customer = :customer where c.create_date order by desc";
+
     @Override
-    public Uni<Void> process(Uni<CashbackEntity> entityUni) {
-        return entityUni
-                .onItem().transform(CashbackDatabaseConverter::toDatabase)
-                .onItem().transformToUni(c -> Panache.withTransaction(() -> c.persist()))
-                .onItem().transform(c -> (CashbackDatabase) c)
-                .invoke(v -> log.info("save cashback to transaction {}",  v.getTransaction()))
+    public Uni<Void> process(final Uni<CashbackEntity> entityUni) {
+        return Panache.withTransaction(() -> entityUni
+                        .onItem().transformToUni(this::executeFindTotalCashbackCustomer)
+                        .onItem().transform(CashbackDatabaseConverter::toDatabase)
+                        .onItem().transformToUni(c -> c.persist())
+                        .onItem().transform(c -> (CashbackDatabase) c)
+                        .invoke(v -> log.info("save cashback to transaction {}",  v.getTransaction())))
                 .onFailure().recoverWithUni(() -> Uni.createFrom().failure(new RuntimeException()))
                 .replaceWithVoid();
+    }
+
+    public Uni<CashbackDatabase> processQuery(final Uni<String> customerCodeUni) {
+        return customerCodeUni
+                .onItem()
+                .transform(c -> CashbackDatabase.find(QUERY_CUSTOMER, c)
+                        .firstResult()
+                ).replaceWith(Uni.createFrom().nullItem());
+    }
+
+    private Uni<CashbackEntity> executeFindTotalCashbackCustomer(CashbackEntity c) {
+        return processQuery(Uni.createFrom().item(c.getCustomer()))
+                .onItem()
+                .transform(v -> {
+                    c.setTotal(c.getTotal().add(v.getTotal()));
+                    return c;
+                }).replaceIfNullWith(c);
     }
 }

@@ -17,6 +17,7 @@ public class CashbackEntity {
     private String customer;
     private BigDecimal movementValue;
     private BigDecimal value;
+    private BigDecimal total;
 
     public CashbackEntity calcule(final BigDecimal percentage) {
         this.value = movementValue.multiply(percentage);

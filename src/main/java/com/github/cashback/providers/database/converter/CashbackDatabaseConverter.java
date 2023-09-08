@@ -3,6 +3,8 @@ package com.github.cashback.providers.database.converter;
 import com.github.cashback.entities.CashbackEntity;
 import com.github.cashback.providers.database.data.CashbackDatabase;
 
+import java.time.LocalDateTime;
+
 public class CashbackDatabaseConverter {
 
     private CashbackDatabaseConverter() { }
@@ -13,6 +15,8 @@ public class CashbackDatabaseConverter {
                 .customer(entity.getCustomer())
                 .transaction(entity.getTransaction())
                 .valueTransaction(entity.getMovementValue())
+                .createDate(LocalDateTime.now())
+                .total(entity.getTotal())
                 .build();
     }
 }

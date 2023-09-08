@@ -4,6 +4,7 @@ value               numeric(15,4) not null,
 transaction_code    varchar(255) not null,
 value_transaction   numeric(15,4) not null,
 customer            varchar(255) not null,
+create_date         timestamp    not null,
 primary key (id)
 );
 

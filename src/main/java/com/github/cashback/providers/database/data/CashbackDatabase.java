@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Builder
 @Entity
@@ -25,4 +26,7 @@ public class CashbackDatabase extends PanacheEntity {
     private BigDecimal value;
     @Column(name = "value_transaction")
     private BigDecimal valueTransaction;
+    @Column(name = "create_date")
+    private LocalDateTime createDate;
+    private BigDecimal total;
 }
