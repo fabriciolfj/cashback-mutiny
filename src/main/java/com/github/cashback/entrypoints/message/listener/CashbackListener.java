@@ -2,7 +2,7 @@ package com.github.cashback.entrypoints.message.listener;
 
 import com.github.cashback.entrypoints.message.converter.CashbackDTOConverter;
 import com.github.cashback.entrypoints.message.dto.CashbackDTO;
-import com.github.cashback.usecase.CashbackCalculeUseCase;
+import com.github.cashback.usecase.cashbacksave.CashbackCalculeUseCase;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;

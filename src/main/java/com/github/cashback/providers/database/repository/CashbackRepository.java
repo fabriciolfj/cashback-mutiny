@@ -3,22 +3,19 @@ package com.github.cashback.providers.database.repository;
 import com.github.cashback.entities.CashbackEntity;
 import com.github.cashback.providers.database.converter.CashbackDatabaseConverter;
 import com.github.cashback.providers.database.data.CashbackDatabase;
-import com.github.cashback.usecase.CashbackProviderSave;
 import io.quarkus.hibernate.reactive.panache.Panache;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Duration;
 
 @Slf4j
 @ApplicationScoped
-public class CashbackRepository implements CashbackProviderSave {
+public class CashbackRepository {
 
     private static final String QUERY_CUSTOMER = "Select c from CashbackDatabase c where c.customer = :customer where c.create_date order by desc";
 
-    @Override
-    public Uni<Void> process(final Uni<CashbackEntity> entityUni) {
+    public Uni<Void> persist(final Uni<CashbackEntity> entityUni) {
         return Panache.withTransaction(() -> entityUni
                         .onItem().transformToUni(this::executeFindTotalCashbackCustomer)
                         .onItem().transform(CashbackDatabaseConverter::toDatabase)
@@ -29,20 +26,20 @@ public class CashbackRepository implements CashbackProviderSave {
                 .replaceWithVoid();
     }
 
-    public Uni<CashbackDatabase> processQuery(final Uni<String> customerCodeUni) {
-        return customerCodeUni
-                .onItem()
-                .transform(c -> CashbackDatabase.find(QUERY_CUSTOMER, c)
-                        .firstResult()
-                ).replaceWith(Uni.createFrom().nullItem());
-    }
-
-    private Uni<CashbackEntity> executeFindTotalCashbackCustomer(CashbackEntity c) {
+    public Uni<CashbackEntity> executeFindTotalCashbackCustomer(CashbackEntity c) {
         return processQuery(Uni.createFrom().item(c.getCustomer()))
                 .onItem()
                 .transform(v -> {
                     c.setTotal(c.getTotal().add(v.getTotal()));
                     return c;
                 }).replaceIfNullWith(c);
+    }
+
+    private Uni<CashbackDatabase> processQuery(final Uni<String> customerCodeUni) {
+        return customerCodeUni
+                .onItem()
+                .transform(c -> CashbackDatabase.find(QUERY_CUSTOMER, c)
+                        .firstResult()
+                ).replaceWith(Uni.createFrom().nullItem());
     }
 }

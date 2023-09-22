@@ -1,4 +1,4 @@
-package com.github.cashback.usecase;
+package com.github.cashback.usecase.cashbacksave;
 
 import com.github.cashback.entities.CashbackEntity;
 import io.smallrye.mutiny.Uni;
