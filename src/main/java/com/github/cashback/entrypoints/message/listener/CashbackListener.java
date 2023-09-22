@@ -24,7 +24,7 @@ public class CashbackListener {
         return Uni.createFrom().item(dto.getPayload())
                 .invoke(d -> log.info("receive payload dto {}", d))
                 .onItem()
-                .transform(t -> CashbackDTOConverter.toEntity(t))
+                .transform(CashbackDTOConverter::toEntity)
                 .onItem()
                 .transformToUni(entity -> useCase.execute(Uni.createFrom().item(entity)))
                 .invoke(c -> {
