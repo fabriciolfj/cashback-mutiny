@@ -17,7 +17,7 @@ public class CashbackProviderFindTotalPerCustomerImpl implements CashbackProvide
 
     @Override
     public Uni<CashbackEntity> process(final CashbackEntity entity) {
-        return repository.executeFindTotalCashbackCustomer(entity)
+        return repository.findTotalCustomer(entity)
                 .invoke(c -> log.info("total customer {} {}", entity.getCustomer(), entity.getTotal()));
     }
 }

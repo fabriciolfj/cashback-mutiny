@@ -13,33 +13,35 @@ import lombok.extern.slf4j.Slf4j;
 @ApplicationScoped
 public class CashbackRepository {
 
-    private static final String QUERY_CUSTOMER = "Select c from CashbackDatabase c where c.customer = :customer where c.create_date order by desc";
+    private static final String QUERY_CUSTOMER = "Select c from CashbackDatabase c where c.customer =?1 order by c.createDate desc LIMIT 1";
 
     public Uni<Void> persist(final Uni<CashbackEntity> entityUni) {
         return Panache.withTransaction(() -> entityUni
-                        .onItem().transformToUni(this::executeFindTotalCashbackCustomer)
+                        .onItem().transformToUni(this::getTotalCashbackCustomer)
                         .onItem().transform(CashbackDatabaseConverter::toDatabase)
                         .onItem().transformToUni(c -> c.persist())
                         .onItem().transform(c -> (CashbackDatabase) c)
                         .invoke(v -> log.info("save cashback to transaction {}",  v.getTransaction())))
-                .onFailure().recoverWithUni(() -> Uni.createFrom().failure(new RuntimeException()))
+                .onFailure()
+                .invoke(v -> log.error("fail save, details {}", v.getMessage()))
                 .replaceWithVoid();
     }
 
-    public Uni<CashbackEntity> executeFindTotalCashbackCustomer(CashbackEntity c) {
-        return processQuery(Uni.createFrom().item(c.getCustomer()))
-                .onItem()
-                .transform(v -> {
-                    c.setTotal(c.getTotal().add(v.getTotal()));
-                    return c;
-                }).replaceIfNullWith(c);
+    public Uni<CashbackEntity> findTotalCustomer(final CashbackEntity entity) {
+        return Panache.withTransaction(() -> findLastRowCustomer(entity)
+                .onItem().ifNotNull().transform(CashbackDatabaseConverter::toEntity)
+                .onFailure().recoverWithNull());
     }
 
-    private Uni<CashbackDatabase> processQuery(final Uni<String> customerCodeUni) {
-        return customerCodeUni
-                .onItem()
-                .transform(c -> CashbackDatabase.find(QUERY_CUSTOMER, c)
-                        .firstResult()
-                ).replaceWith(Uni.createFrom().nullItem());
+    private Uni<CashbackEntity> getTotalCashbackCustomer(final CashbackEntity c) {
+        return findLastRowCustomer(c)
+                .onItem().transform(v -> c.addTotal(v.getTotal()))
+                .onFailure().recoverWithNull().replaceWith(c);
+    }
+
+    private Uni<CashbackDatabase> findLastRowCustomer(final CashbackEntity c) {
+        return CashbackDatabase.find(QUERY_CUSTOMER, c.getCustomer()).firstResult()
+                .onItem().transform(v -> (CashbackDatabase) v);
+
     }
 }

@@ -21,6 +21,12 @@ public class CashbackEntity {
 
     public CashbackEntity calcule(final BigDecimal percentage) {
         this.value = movementValue.multiply(percentage);
+        this.total = this.value;
+        return this;
+    }
+
+    public CashbackEntity addTotal(final BigDecimal total) {
+        this.total = this.total.add(total);
         return this;
     }
 }

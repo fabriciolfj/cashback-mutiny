@@ -27,8 +27,9 @@ public class CashbackListener {
                 .transform(CashbackDTOConverter::toEntity)
                 .onItem()
                 .transformToUni(entity -> useCase.execute(Uni.createFrom().item(entity)))
-                .invoke(c -> {
-                    log.info("processo successful");
-                }).replaceWithVoid();
+                .invoke(c -> log.info("processo successful"))
+                .replaceWithVoid()
+                .onFailure()
+                .invoke(v -> log.error("fail listener cashback credit , message {}, detailes {}", dto, v.getMessage()));
     }
 }
